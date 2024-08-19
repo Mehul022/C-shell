@@ -1,0 +1,15 @@
+reveal
+hop ..
+reveal
+hop ..
+reveal
+reveal -a
+hop ..
+hop ~
+hop ..
+hop ~
+hop -
+hop ..
+hop -
+hop ..
+hop .
