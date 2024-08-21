@@ -31,7 +31,6 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
         {
             if (arg[0] == '-' && strlen(arg) > 1)
             {
-
                 for (int x = 0; x < strlen(arg); x++)
                 {
                     if (arg[x] != '-' && arg[x] != 'a' && arg[x] != 'l')
@@ -90,6 +89,56 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
         else
         {
             proclore_pro(command);
+        }
+    }
+    else if(strcmp(command,"seek")==0)
+    {
+        char *arg = strtok(NULL, " \t");
+        int d=0,f=0,e=0;
+        while (arg != NULL)
+        {
+            if (arg[0] == '-' && strlen(arg) >1)
+            {
+                if(arg[1]=='d')
+                {
+                    d=1;
+                }
+                else if(arg[1]=='f')
+                {
+                    f=1;
+                }
+                else if(arg[1]=='e')
+                {
+                    e=1;
+                }
+                else
+                {
+                    printf("Invalid Flag!!");
+                    return ;
+                }
+
+                if(d && f)
+                {
+                    printf("Invalid Flags!!");
+                    return ;
+                }
+            }
+            else
+            {
+                char search[1024];
+                strcpy(search,arg);
+                arg = strtok(NULL, " \t");
+                if(arg!=NULL)
+                {
+                    char directrix_path[1024];
+                    strcpy(directrix_path,arg);
+                }
+                else
+                {
+
+                }
+            }
+            arg = strtok(NULL, " \t");
         }
     }
     else

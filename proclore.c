@@ -1,38 +1,58 @@
 #include "header.h"
 #include <errno.h>
 #include <signal.h>
+#include <paths.h>
+#include <fcntl.h>
+
 bool proclore_pro(char *command)
 {
     int pid = atoi(command);
     if (kill(pid, 0) == 0)
     {
-        char path[1024];
-        char exe_path[1024];
-        snprintf(path, sizeof(path), "/proc/%d/exe", pid);
-        ssize_t len = readlink(path, exe_path, sizeof(exe_path) - 1);
-        if (len == -1)
-        {
-            perror("Failed to read symbolic link");
-        }
-        exe_path[len] = '\0';
         int group_id = getpgid(pid);
         char process_path[1024];
         char state;
-        char arr[4000];
-        printf("%s\n",exe_path);
         snprintf(process_path, sizeof(process_path), "/proc/%d/status", pid);
-        FILE *fp = fopen(process_path, "r");
-        if (fp == NULL)
+        int fd = open(process_path, O_RDONLY);
+        if (fd == -1)
         {
             perror("Failed to open status file");
+            return 1;
         }
         else
         {
-            while (fscanf(fp, "State:\t%c", &state) != 1)
+            char buffer[1025];
+            ssize_t bytesRead = read(fd, buffer, sizeof(buffer));
+            if (bytesRead == -1)
             {
-                fscanf(fp, "%*[^\n]\n"); // it will scan untill we get this particular format of input;
+                perror("Failed to read status file");
+                close(fd);
+                return 1;
             }
-            fclose(fp);
+            buffer[bytesRead] = '\0';
+            char state;
+            char *state_ptr = strstr(buffer, "State:\t");
+            if (state_ptr != NULL)
+            {
+                sscanf(state_ptr, "State:\t%c", &state);
+            }
+            else
+            {
+                printf("Failed to find process state in the status file\n");
+                return 1;
+            }
+            int vm_size = 0;
+            char *line = strtok(buffer, "\n");
+            while (line != NULL)
+            {
+                if (strncmp(line, "VmSize:", 7) == 0)
+                {
+                    sscanf(line + 7, "%d", &vm_size);
+                    break;
+                }
+                line = strtok(NULL, "\n");
+            }
+            close(fd);
             char process_state[3];
             if (state == 'R' || state == 'Z')
             {
@@ -40,7 +60,7 @@ bool proclore_pro(char *command)
             }
             else
             {
-                process_path[0] = 'S';
+                process_state[0] = 'S';
             }
             if (pid == group_id)
             {
@@ -51,30 +71,20 @@ bool proclore_pro(char *command)
             {
                 process_state[1] = '\0';
             }
-            fp = fopen(process_path, "r");
-            if (fp == NULL)
+            char path[1024];
+            char exe_path[1024];
+            snprintf(path, sizeof(path), "/proc/%d/exe", pid);
+            ssize_t len = readlink(path, exe_path, sizeof(exe_path) - 1);
+            if (len == -1)
             {
-                perror("Failed to open status file");
+                perror("Failed to read symbolic link");
             }
-            else
-            {
-                char line[100];
-                int vm_size = 0;
-                while (fgets(line, sizeof(line), fp) != NULL)
-                {
-                    if (strncmp(line, "VmSize:", 7) == 0)
-                    {
-                        sscanf(line + 7, "%d", &vm_size);
-                        break;
-                    }
-                }
-
-                printf("pid : %d\n", pid);
-                printf("process status : %s\n", process_state);
-                printf("Process Group : %d\n", group_id);
-                printf("Virtual memory : %d\n", vm_size);
-                printf("executable path : %s\n", exe_path);
-            }
+            exe_path[len] = '\0';
+            printf("pid             : %d\n", pid);
+            printf("process status  : %s\n", process_state);
+            printf("Process Group   : %d\n", group_id);
+            printf("Virtual memory  : %d\n", vm_size);
+            printf("executable path : %s\n", exe_path);
         }
     }
     else
@@ -121,7 +131,7 @@ bool proclore_self()
         }
         else
         {
-            process_path[0] = 'S';
+            process_state[0] = 'S';
         }
         if (pid == group_id)
         {
@@ -158,10 +168,10 @@ bool proclore_self()
                 perror("Failed to read symbolic link");
             }
             exe_path[len] = '\0';
-            printf("pid : %d\n", pid);
-            printf("process status : %s\n", process_state);
-            printf("Process Group : %d\n", group_id);
-            printf("Virtual memory : %d\n", vm_size);
+            printf("pid             : %d\n", pid);
+            printf("process status  : %s\n", process_state);
+            printf("Process Group   : %d\n", group_id);
+            printf("Virtual memory  : %d\n", vm_size);
             printf("executable path : %s\n", exe_path);
         }
     }

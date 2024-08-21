@@ -16,3 +16,4 @@
 #include <time.h>         // For clock_gettime, CLOCK_MONOTONIC, localtime, strftime
 #include <sys/utsname.h>  // For struct utsname and uname function
 #include"proclore.h"
+#include"seek.h"
