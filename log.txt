@@ -1,15 +1,15 @@
-reveal
+sleep 3&
+sleep 3 &
 hop ..
-reveal
+sleep 3&
 hop ..
-reveal
-reveal -a
+sleeep 3&
 hop ..
-hop ~
-hop ..
-hop ~
+sleep 3&
 hop -
-hop ..
-hop -
-hop ..
+slllleeep 3&
 hop .
+sleep 1&
+hhop ..
+sllleeep 3 &
+hop ..

@@ -16,12 +16,7 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
         while (command != NULL)
         {
             getcwd(prev, PATH_MAX);
-            if (hop(command, home, temp))
-            {
-                char com[1024];
-                snprintf(com, sizeof(com), "%s %s", com_store, command);
-                write_log(com, log_path);
-            }
+            hop(command, home, temp);
             command = strtok(NULL, " \t");
         }
         strcpy(temp, prev);
@@ -74,10 +69,7 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
         }
         if (check)
         {
-            if (handle_reveal(path, flags, home, prev))
-            {
-                write_log(arr2, log_path);
-            }
+            handle_reveal(path, flags, home, prev);
         }
         if (flags != NULL)
         {
@@ -90,6 +82,15 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
     }
     else if (strcmp(command, "proclore") == 0)
     {
+        command = strtok(NULL, " \t");
+        if (command == NULL)
+        {
+            proclore_self();
+        }
+        else
+        {
+            proclore_pro(command);
+        }
     }
     else
     {
@@ -98,6 +99,7 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
         {
             perror("fork failed");
         }
+
         else if (pid == 0)
         {
             if (bg)
@@ -121,25 +123,7 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
                     args[i] = NULL;
                     if (execvp(command, args) < 0)
                     {
-                        FILE *file = fopen(bg_ends, "a");
-                        if (file == NULL)
-                        {
-                            perror("Failed to open file");
-                        }
-                        else
-                            fprintf(file, "Command: %s with PID: %d is failed\n", arr, getppid());
-                        fclose(file);
-                    }
-                    else
-                    {
-                        FILE *file = fopen(bg_ends, "a");
-                        if (file == NULL)
-                        {
-                            perror("Failed to open file");
-                        }
-                        else
-                            fprintf(file, "Command: %s with PID: %d is exited successfully\n", arr, getppid());
-                        fclose(file);
+                        exit(1);
                     }
                     exit(0);
                 }
@@ -147,6 +131,18 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
                 {
                     int status;
                     waitpid(pid2, &status, 0);
+                    FILE *file = fopen(bg_ends, "a");
+                     int exit_status = WEXITSTATUS(status);
+                    if(exit_status==0)
+                    {
+                        fprintf(file, "Command: %s with PID: %d executed successfully\n", arr, getpid());
+                    }
+                    else
+                    {
+                        fprintf(file, "Command: %s with PID: %d is failed\n", arr, getpid());
+                    }
+                    fflush(file);
+                    fclose(file);
                     exit(0);
                 }
             }
@@ -177,21 +173,23 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
                 int status;
                 waitpid(pid, &status, 0); // status will gwt 0 if child ends normally else status will terminate on 1;
                 clock_gettime(CLOCK_MONOTONIC, &end);
-                // Calculate the elapsed time in seconds
-                double elapsed = end.tv_sec - start.tv_sec;
-                elapsed += (end.tv_nsec - start.tv_nsec) / 1000000000.0;
-                int t = elapsed;
-                if (t > 2)
+                if (!status)
                 {
-                    if (*flag)
+                    double elapsed = end.tv_sec - start.tv_sec;
+                    elapsed += (end.tv_nsec - start.tv_nsec) / 1000000000.0;
+                    int t = elapsed;
+                    if (t > 2)
                     {
-                        strcat(time, " ; ");
-                        strcat(time, arr2);
-                    }
-                    else
-                    {
-                        strcpy(time, arr2);
-                        *flag = 1;
+                        if (*flag)
+                        {
+                            strcat(time, " / ");
+                            strcat(time, arr2);
+                        }
+                        else
+                        {
+                            strcpy(time, arr2);
+                            *flag = 1;
+                        }
                     }
                 }
             }
@@ -202,7 +200,6 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
         }
     }
 }
-
 int main()
 {
 
@@ -229,6 +226,7 @@ int main()
         char input[1024];
         scanf("%[^\n]%*c", input);
         input[strlen(input)] = '\0';
+        write_log(input, log_path);
         char delimiters[] = ";";
         char *Input = strtok(input, delimiters);
         char com[500][1024];
