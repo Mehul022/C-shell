@@ -1,15 +1,15 @@
-proclore 
-sleep 40 &
-proclore 203699
-proclore
-sleep 100 &
-proclore 204813
-proclore
-sleep 50 &
-proclore 205364
-hop ..
-proclore 1
-proclore 205840
-proclore 206093
-proclore
-proclore 206141
+seek -d -f 
+seek -d 
+seek -d -e shell
+seek -d shell
+seek -f lo
+seek l
+seek ac
+seek -f s
+seek -d shell
+seek -d -e shell
+seek -f s
+seek s
+seek sh
+seek -e sh
+hop -

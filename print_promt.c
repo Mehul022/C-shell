@@ -1,5 +1,4 @@
 #include "header.h"
-#include <sys/utsname.h>
 void print_prompt(char *arr,char *time)
 {
     char cwd[PATH_MAX];      // defining a array of pathmax size which is the maximum size of any directrix;

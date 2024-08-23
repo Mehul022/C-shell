@@ -52,7 +52,7 @@ void write_commands(char commands[15][1024], int count,char *log_path)
     {
         fprintf(file, "%s\n", commands[i]);
     }
-
+    fflush(file);
     fclose(file);
 }
 

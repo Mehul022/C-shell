@@ -1,8 +1,4 @@
 #include "header.h"
-#include <errno.h>
-#include <signal.h>
-#include <paths.h>
-#include <fcntl.h>
 
 bool proclore_pro(char *command)
 {

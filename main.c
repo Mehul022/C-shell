@@ -91,51 +91,65 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
             proclore_pro(command);
         }
     }
-    else if(strcmp(command,"seek")==0)
+    else if (strcmp(command, "seek") == 0)
     {
         char *arg = strtok(NULL, " \t");
-        int d=0,f=0,e=0;
+        int d = 0, f = 0, e = 0;
         while (arg != NULL)
         {
-            if (arg[0] == '-' && strlen(arg) >1)
+            if (arg[0] == '-' && strlen(arg) > 1)
             {
-                if(arg[1]=='d')
+                if (arg[1] == 'd')
                 {
-                    d=1;
+                    d = 1;
                 }
-                else if(arg[1]=='f')
+                else if (arg[1] == 'f')
                 {
-                    f=1;
+                    f = 1;
                 }
-                else if(arg[1]=='e')
+                else if (arg[1] == 'e')
                 {
-                    e=1;
+                    e = 1;
                 }
                 else
                 {
-                    printf("Invalid Flag!!");
-                    return ;
+                    printf("Invalid Flag!!\n");
+                    return;
                 }
 
-                if(d && f)
+                if (d && f)
                 {
-                    printf("Invalid Flags!!");
-                    return ;
+                    printf("Invalid Flags!!\n");
+                    return;
                 }
             }
             else
             {
                 char search[1024];
-                strcpy(search,arg);
+                strcpy(search, arg);
                 arg = strtok(NULL, " \t");
-                if(arg!=NULL)
+                if (arg != NULL)
                 {
                     char directrix_path[1024];
-                    strcpy(directrix_path,arg);
+                    strcpy(directrix_path, arg);
+                    char ret[1024];
+
+                    if (seek(d, f, e, search, directrix_path, ret))
+                    {
+                        getcwd(prev, PATH_MAX);
+                        hop(ret, home, prev);
+                    }
                 }
                 else
                 {
+                    char ret[1024];
 
+                    if (seek(d, f, e, search, NULL, ret))
+                    {
+                        // printf("%s\n",ret);
+                        getcwd(prev,PATH_MAX);
+                        hop(ret,home,prev);
+                    }
                 }
             }
             arg = strtok(NULL, " \t");
@@ -181,8 +195,8 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
                     int status;
                     waitpid(pid2, &status, 0);
                     FILE *file = fopen(bg_ends, "a");
-                     int exit_status = WEXITSTATUS(status);
-                    if(exit_status==0)
+                    int exit_status = WEXITSTATUS(status);
+                    if (exit_status == 0)
                     {
                         fprintf(file, "Command: %s with PID: %d executed successfully\n", arr, getpid());
                     }
@@ -275,7 +289,10 @@ int main()
         char input[1024];
         scanf("%[^\n]%*c", input);
         input[strlen(input)] = '\0';
-        write_log(input, log_path);
+        if (strstr(input, "log") == NULL)
+        {
+            write_log(input, log_path);
+        }
         char delimiters[] = ";";
         char *Input = strtok(input, delimiters);
         char com[500][1024];
