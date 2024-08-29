@@ -15,8 +15,12 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
         command = strtok(NULL, " \t");
         while (command != NULL)
         {
-            getcwd(prev, PATH_MAX);
-            hop(command, home, temp);
+            char prev2[PATH_MAX];
+            getcwd(prev2, PATH_MAX);
+            if(hop(command, home, temp))
+            {
+                strcpy(prev,prev2);
+            }
             command = strtok(NULL, " \t");
         }
         strcpy(temp, prev);
@@ -146,7 +150,7 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
 
                     if (seek(d, f, e, search, NULL, ret))
                     {
-                        // printf("%s\n",ret);
+                        // printf("%s\n",ret);          
                         getcwd(prev,PATH_MAX);
                         hop(ret,home,prev);
                     }
@@ -245,7 +249,8 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
                     {
                         if (*flag)
                         {
-                            strcat(time, " / ");
+                            strcat(time," ");
+                            strcat(time, " /");
                             strcat(time, arr2);
                         }
                         else
@@ -263,6 +268,7 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
         }
     }
 }
+
 int main()
 {
 
@@ -274,7 +280,7 @@ int main()
     snprintf(log_path, sizeof(log_path), "%s%s", arr, "/log.txt");
     char bgends_path[PATH_MAX];
     snprintf(bgends_path, sizeof(bgends_path), "%s%s", arr, "/bg_ends.txt");
-    char time_exceed_command[1024];
+    char time_exceed_command[1024];// for printing the foreground command that takes more than 2 sec integral value
     time_exceed_command[0] = '\0';
     FILE *file2 = fopen(bgends_path, "w");
     if (file2 == NULL)
@@ -287,8 +293,24 @@ int main()
         print_prompt(arr, time_exceed_command);
         time_exceed_command[0] = '\0';
         char input[1024];
-        scanf("%[^\n]%*c", input);
-        input[strlen(input)] = '\0';
+        scanf("%[^\n]", input);
+        int c;
+        while ((c = getchar()) != '\n' && c != EOF){}
+        input[strlen(input)]='\0';
+        int len = strlen(input);
+        int is_only_whitespace = 1;
+        for (int i = 0; i < len; i++)
+        {
+            if (!isspace(input[i]))
+            {
+                is_only_whitespace = 0;
+                break;
+            }
+        }
+        if (len == 0 || is_only_whitespace)
+        {
+            continue;
+        }
         if (strstr(input, "log") == NULL)
         {
             write_log(input, log_path);

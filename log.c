@@ -9,10 +9,9 @@ void print_log(char* log_path)
         return;
     }
     char line[1024];
-    int count = 1;
     while (fgets(line, sizeof(line), file)) // reads untill encounter \0,EOF or sizeof(line) ends; also inlude the \n character in the string
     {
-        printf("%d %s", count++, line);
+        printf("%s", line);
     }
     fclose(file);
 }

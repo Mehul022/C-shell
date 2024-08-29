@@ -227,7 +227,13 @@ bool seek(int l, int f, int e, char *search, char *direc ,char* store_path)
                         {
                             snprintf(relative_path, sizeof(relative_path), "./%s/%s", current_path + strlen(start_path) + 1, entry->d_name);
                         }
-                        if (!is_executable(new_path) || is_directory(new_path))
+                        if (is_directory(new_path))
+                        {
+                            snprintf(store_path, 1024, "%s/%s", current_path, entry->d_name);
+                            count++;
+                            printf("\033[34m%s\033[0m\n", relative_path);
+                        }
+                        else if (!is_executable(new_path))
                         {
                             snprintf(store_path, 1024, "%s/%s", current_path, entry->d_name);
                             count++;

@@ -1,4 +1,4 @@
-#include"header.h"
+#include "header.h"
 void print_permissions(mode_t mode)
 {
     char permissions[11];
@@ -37,26 +37,55 @@ void print_file_type(const struct stat *file_info)
     {
         printf("\033[34m"); // Blue
     }
-    else if (S_ISREG(file_info->st_mode) && (file_info->st_mode & S_IXUSR))//S_ISREG for checking regular file not a directrix or link and second one is checking hweather we have executing permission or not if yes then it is executable.
+    else if (S_ISREG(file_info->st_mode) && (file_info->st_mode & S_IXUSR)) // S_ISREG for checking regular file not a directrix or link and second one is checking hweather we have executing permission or not if yes then it is executable.
     {
         printf("\033[32m"); // Green
     }
     else
     {
-        printf("\033[37m"); // White 
+        printf("\033[37m"); // White
     }
 }
 void print_extra_info(const struct stat *file_info, const char *filename)
 {
-    char time_buf[256];
+    char time_buf[20];
     struct tm *tm_info;
+    struct passwd *pw;
+    struct group *gr;
     print_permissions(file_info->st_mode);
+    printf(" %3ld ", file_info->st_nlink);
+    pw = getpwuid(file_info->st_uid);
+    if (pw)
+    {
+        printf("%-8s ", pw->pw_name);
+    }
+    else
+    {
+        printf("%-8d ", file_info->st_uid);
+    }
+    gr = getgrgid(file_info->st_gid);
+    if (gr)
+    {
+        printf("%-8s ", gr->gr_name);
+    }
+    else
+    {
+        printf("%-8d ", file_info->st_gid);
+    }
     printf("%6ld ", file_info->st_size);
-    tm_info = localtime(&file_info->st_mtime);//st_mtime last modified time;
-    strftime(time_buf, sizeof(time_buf), "%b %d %H:%M", tm_info);
+    tm_info = localtime(&file_info->st_mtime); // st_mtime last modified time;
+    time_t current_time = time(NULL);
+    if (difftime(current_time, file_info->st_mtime) < 6 * 30 * 24 * 60 * 60)
+    {
+        strftime(time_buf, sizeof(time_buf), "%b %d %H:%M", tm_info);
+    }
+    else
+    {
+        strftime(time_buf, sizeof(time_buf), "%b %d  %Y", tm_info);
+    }
     printf("%s ", time_buf);
     print_file_type(file_info);
-    printf("%s\033[0m\n", filename); 
+    printf("%s\033[0m\n", filename);
 }
 
 int compare_filenames(const void *a, const void *b)
@@ -87,7 +116,6 @@ bool handle_reveal(char *path, char *flags, char *home, char *prev)
                 char expanded_path[1024];
                 snprintf(expanded_path, sizeof(expanded_path), "%s%s", home, path + 1);
                 return (reveal(expanded_path));
-                
             }
             else
             {
@@ -104,7 +132,6 @@ bool handle_reveal(char *path, char *flags, char *home, char *prev)
         else if (strcmp(path, "~") == 0)
         {
             return (revealf(home, flags));
-            
         }
         else if (strcmp(path, "-") == 0)
         {
@@ -117,7 +144,6 @@ bool handle_reveal(char *path, char *flags, char *home, char *prev)
                 char expanded_path[1024];
                 snprintf(expanded_path, sizeof(expanded_path), "%s%s", home, path + 1);
                 return (revealf(expanded_path, flags));
-                
             }
             else
             {
@@ -129,8 +155,8 @@ bool handle_reveal(char *path, char *flags, char *home, char *prev)
 
 bool reveal(char *dir_path)
 {
-    struct dirent *entry;// contain file serial number and filename 
-    struct stat file_info;// conatain multiple things about file including file permission owner id modified time and many more.
+    struct dirent *entry;  // contain file serial number and filename
+    struct stat file_info; // conatain multiple things about file including file permission owner id modified time and many more.
     DIR *dp = opendir(dir_path);
     char *filenames[1024];
     int file_count = 0;
@@ -149,6 +175,7 @@ bool reveal(char *dir_path)
         }
     }
     closedir(dp);
+    
     qsort(filenames, file_count, sizeof(char *), compare_filenames);
     for (int i = 0; i < file_count; i++)
     {
@@ -194,6 +221,31 @@ bool revealf(char *dir_path, char *flags)
         qsort(filenames, file_count, sizeof(char *), compare_filenames);
         if (strchr(flags, 'l') != NULL)
         {
+            int total_blocks = 0;
+            dp = opendir(dir_path);
+            if (dp == NULL)
+            {
+                perror("opendir");
+                return false;
+            }
+            while ((entry = readdir(dp)) != NULL)
+            {
+                struct stat file_stat;
+                char path[1024];
+                snprintf(path, sizeof(path), "%s/%s", ".", entry->d_name);
+                if (stat(path, &file_stat) == 0)
+                {
+                    if (S_ISREG(file_stat.st_mode) || S_ISLNK(file_stat.st_mode))
+                    {
+                        total_blocks += file_stat.st_blocks;
+                    }
+                }
+                else
+                {
+                    perror("stat");
+                }
+            }
+            printf("total %d\n",total_blocks);
             for (int i = 0; i < file_count; i++)
             {
                 char file_path[PATH_MAX];
@@ -241,7 +293,7 @@ bool revealf(char *dir_path, char *flags)
         }
         while ((entry = readdir(dp)) != NULL)
         {
-            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0 && entry->d_name[0]!='.')
+            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0 && entry->d_name[0] != '.')
             {
                 filenames[file_count] = strdup(entry->d_name);
                 file_count++;
@@ -251,6 +303,31 @@ bool revealf(char *dir_path, char *flags)
         qsort(filenames, file_count, sizeof(char *), compare_filenames);
         if (strchr(flags, 'l') != NULL)
         {
+            int total_blocks = 0;
+            dp = opendir(dir_path);
+            if (dp == NULL)
+            {
+                perror("opendir");
+                return false;
+            }
+            while ((entry = readdir(dp)) != NULL)
+            {
+                struct stat file_stat;
+                char path[1024];
+                snprintf(path, sizeof(path), "%s/%s", ".", entry->d_name);
+                if (stat(path, &file_stat) == 0)
+                {
+                    if (S_ISREG(file_stat.st_mode) || S_ISLNK(file_stat.st_mode) || S_ISDIR(file_stat.st_mode))
+                    {
+                        total_blocks += file_stat.st_blocks;
+                    }
+                }
+                else
+                {
+                    perror("stat");
+                }
+            }
+            printf("total %d\n", total_blocks/2);
             for (int i = 0; i < file_count; i++)
             {
                 char file_path[PATH_MAX];

@@ -1,15 +1,15 @@
-seek -d -f 
-seek -d 
-seek -d -e shell
-seek -d shell
-seek -f lo
-seek l
-seek ac
-seek -f s
-seek -d shell
-seek -d -e shell
-seek -f s
-seek s
-seek sh
-seek -e sh
+  
+sleep 3
+hop ..
+sleep 1 ; sleep 4
+seek -e -d shell
+seek -f seek
+seek -f -e seek.c
+seek -e seek.h
 hop -
+seek -e shell
+seek -d s
+hop -
+seek -d s
+seek s
+hop ..

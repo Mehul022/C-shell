@@ -15,6 +15,9 @@
 #include<paths.h>
 #include <errno.h>
 #include <signal.h>
+#include <pwd.h>
+#include <grp.h>
+#include <ctype.h>
 #include <fcntl.h>
 #include "proclore.h"
 #include "seek.h"
