@@ -6,7 +6,7 @@ void print_prompt(char *arr,char *time)
     struct utsname sys_info; // defining a variable of utsname struct type which contain sysname,nodename,version ,machine,relaese;
     if (getcwd(cwd, sizeof(cwd)) != NULL && user != NULL && uname(&sys_info) == 0)
     {
-        char host_name[1024];
+        char host_name[PATH];
         gethostname(host_name,sizeof(host_name));
         if (strlen(cwd) >= strlen(arr))
         {

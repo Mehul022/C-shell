@@ -1,15 +1,15 @@
-  
-sleep 3
-hop ..
-sleep 1 ; sleep 4
-seek -e -d shell
-seek -f seek
-seek -f -e seek.c
-seek -e seek.h
-hop -
-seek -e shell
-seek -d s
-hop -
-seek -d s
-seek s
-hop ..
+echo "jflkml" | wc 
+| wc
+echo "ynghwnj" | | wc
+echo "gghjmk" | wc | cat > a.txt
+echo "ugnhu" | wc | cat > a.txt |
+echo "Something" > a.txt | wc
+echo "So" | wc < a.txt
+activities
+vim &
+[I[3;1R[>0;276;0c]10;rgb:cccc/cccc/cccc\]11;rgb:1818/1818/1818OAOAOAOAOAOAOAOAOA:vijnj:::q[O[I:![O:OBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOAOAOAOAOAOAOAOAOAOAOAOAOAOAOAOAOA:s:q![O:q!!!!
+[I[3
+sleep 100 &
+activities
+sleep 100 &
+activities

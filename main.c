@@ -1,163 +1,117 @@
 #include "header.h"
 
-void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *time, int *flag, char *bg_ends)
+int caller(char *pipe, int bg, int *flag, int pipe_flag_write, int pipe_flag_read)
 {
-    char arr2[1024];
-    strcpy(arr2, arr);
-    char *command = strtok(arr, " \t"); // divide arr with space and /t simple put \0 in place of that; if we pass null instead of arr then it will take the previous array;it returns the first string formed after insertion of the \0;
+    int original_stdout = dup(STDOUT_FILENO);
+    int original_stdin = dup(STDIN_FILENO);
+    int flag_write = 0, flag_append = 0, flag_read = 0;
+    char *out_file = NULL;
+    char *in_file = NULL;
+    int fd_out = -1, fd_in = -1;
+    char pipe3[COMMAND_PATH];
+    strcpy(pipe3, pipe);
+    FILE *file = fopen(pipe_file, "w");
+    if (file == NULL)
+    {
+        perror("Error opening file");
+    }
+    else
+    {
+        fclose(file);
+    }
+    if (strstr(pipe3, ">>"))
+    {
+        flag_append = 1;
+        out_file = strtok(strstr(pipe3, ">>") + 2, " \t");
+    }
+    else if (strstr(pipe3, ">"))
+    {
+        flag_write = 1;
+        out_file = strtok(strstr(pipe3, ">") + 1, " \t");
+    }
+    else if (pipe_flag_write)
+    {
+        flag_write = 1;
+        out_file = pipe_file;
+    }
+    if (strstr(pipe3, "<"))
+    {
+        flag_read = 1;
+        in_file = strtok(strstr(pipe3, "<") + 1, " \t");
+    }
+    else if (pipe_file_read)
+    {
 
+        flag_read = 1;
+        in_file = pipe_file_read;
+    }
+    if (flag_read && in_file)
+    {
+        fd_in = open(in_file, O_RDONLY);
+        if (fd_in < 0)
+        {
+            perror("open input file");
+            return 0;
+        }
+        dup2(fd_in, STDIN_FILENO);
+        close(fd_in);
+    }
+
+    else if (flag_append && out_file)
+    {
+        fd_out = open(out_file, O_WRONLY | O_CREAT | O_APPEND, S_IRWXU);
+        if (fd_out < 0)
+        {
+            perror("open output file");
+            return 0;
+        }
+        dup2(fd_out, STDOUT_FILENO);
+    }
+
+    if (flag_write && out_file)
+    {
+        fd_out = open(out_file, O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU);
+        if (fd_out < 0)
+        {
+            perror("open output file");
+            return 0;
+        }
+        dup2(fd_out, STDOUT_FILENO);
+    }
+    char pipe2[COMMAND_PATH];
+    strcpy(pipe2, pipe);
+    char *command = strtok(pipe, " \t"); // divide pipe with space and /t simple put \0 in place of that; if we pass null instead of pipe then it will take the previous_dirious pipeay;it returns the first string formed after insertion of the \0;
     if (strcmp(command, "hop") == 0)
     {
-        char com_store[1024];
-        strcpy(com_store, command);
-        char temp[PATH_MAX];
-        strcpy(temp, prev);
-        command = strtok(NULL, " \t");
-        while (command != NULL)
-        {
-            char prev2[PATH_MAX];
-            getcwd(prev2, PATH_MAX);
-            if(hop(command, home, temp))
-            {
-                strcpy(prev,prev2);
-            }
-            command = strtok(NULL, " \t");
-        }
-        strcpy(temp, prev);
+        hop_handler(pipe2, flag_read, in_file);
     }
     else if (strcmp(command, "reveal") == 0)
     {
-        char *flags = NULL;
-        char *path = NULL;
-        char *arg = strtok(NULL, " \t");
-        int check = 1;
-        while (arg != NULL)
-        {
-            if (arg[0] == '-' && strlen(arg) > 1)
-            {
-                for (int x = 0; x < strlen(arg); x++)
-                {
-                    if (arg[x] != '-' && arg[x] != 'a' && arg[x] != 'l')
-                    {
-                        check = 0;
-                        printf("Invalid flag!!\n");
-                        break;
-                    }
-                }
-                if (check)
-                {
-                    if (flags == NULL)
-                    {
-                        flags = strdup(arg);
-                    }
-                    else
-                    {
-                        char *temp_flags = (char *)malloc(strlen(flags) + strlen(arg) + 1);
-                        strcpy(temp_flags, flags);
-                        strcat(temp_flags, arg);
-                        free(flags);
-                        flags = temp_flags;
-                    }
-                }
-                else
-                {
-                    break;
-                }
-            }
-            else
-            {
-                path = arg;
-            }
-            arg = strtok(NULL, " \t");
-        }
-        if (check)
-        {
-            handle_reveal(path, flags, home, prev);
-        }
-        if (flags != NULL)
-        {
-            free(flags);
-        }
+        reveal_handler(pipe2, flag_read, in_file);
     }
     else if (strcmp(command, "log") == 0)
     {
-        print_log(log_path);
+        log_handler(pipe2, flag_read, in_file);
     }
     else if (strcmp(command, "proclore") == 0)
     {
         command = strtok(NULL, " \t");
-        if (command == NULL)
-        {
-            proclore_self();
-        }
-        else
-        {
+        if (strcmp(command, ">>") != 0 && strcmp(command, ">") != 0 && strcmp(command, "<") != 0)
             proclore_pro(command);
-        }
+        else
+            proclore_pro(NULL);
     }
     else if (strcmp(command, "seek") == 0)
     {
-        char *arg = strtok(NULL, " \t");
-        int d = 0, f = 0, e = 0;
-        while (arg != NULL)
-        {
-            if (arg[0] == '-' && strlen(arg) > 1)
-            {
-                if (arg[1] == 'd')
-                {
-                    d = 1;
-                }
-                else if (arg[1] == 'f')
-                {
-                    f = 1;
-                }
-                else if (arg[1] == 'e')
-                {
-                    e = 1;
-                }
-                else
-                {
-                    printf("Invalid Flag!!\n");
-                    return;
-                }
-
-                if (d && f)
-                {
-                    printf("Invalid Flags!!\n");
-                    return;
-                }
-            }
-            else
-            {
-                char search[1024];
-                strcpy(search, arg);
-                arg = strtok(NULL, " \t");
-                if (arg != NULL)
-                {
-                    char directrix_path[1024];
-                    strcpy(directrix_path, arg);
-                    char ret[1024];
-
-                    if (seek(d, f, e, search, directrix_path, ret))
-                    {
-                        getcwd(prev, PATH_MAX);
-                        hop(ret, home, prev);
-                    }
-                }
-                else
-                {
-                    char ret[1024];
-
-                    if (seek(d, f, e, search, NULL, ret))
-                    {
-                        // printf("%s\n",ret);          
-                        getcwd(prev,PATH_MAX);
-                        hop(ret,home,prev);
-                    }
-                }
-            }
-            arg = strtok(NULL, " \t");
-        }
+        seek_handler(pipe2, flag_read, in_file);
+    }
+    else if (strcmp(command, "cd") == 0)
+    {
+        cd_handler(pipe2, flag_read, in_file);
+    }
+    else if (strcmp(command, "activities") == 0)
+    {
+        update_and_print_processes();
     }
     else
     {
@@ -166,12 +120,11 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
         {
             perror("fork failed");
         }
-
         else if (pid == 0)
         {
+
             if (bg)
             {
-                // setsid();
                 int pid2 = fork();
                 if (pid2 < 0)
                 {
@@ -179,11 +132,11 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
                 }
                 else if (pid2 == 0)
                 {
-                    char *args[1024];
+                    char *args[COMMAND_PATH];
                     int i = 0;
                     args[i++] = command;
                     char *arg;
-                    while ((arg = strtok(NULL, " \t")) != NULL)
+                    while ((arg = strtok(NULL, " \t")) != NULL && strcmp(arg, ">>") != 0 && strcmp(arg, ">") != 0 && strcmp(arg, "<") != 0)
                     {
                         args[i++] = arg;
                     }
@@ -198,15 +151,15 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
                 {
                     int status;
                     waitpid(pid2, &status, 0);
-                    FILE *file = fopen(bg_ends, "a");
+                    FILE *file = fopen(bgends_path, "a");
                     int exit_status = WEXITSTATUS(status);
                     if (exit_status == 0)
                     {
-                        fprintf(file, "Command: %s with PID: %d executed successfully\n", arr, getpid());
+                        fprintf(file, "Command: %s with PID: %d executed successfully\n", pipe, getpid());
                     }
                     else
                     {
-                        fprintf(file, "Command: %s with PID: %d is failed\n", arr, getpid());
+                        fprintf(file, "Command: %s with PID: %d is failed\n", pipe, getpid());
                     }
                     fflush(file);
                     fclose(file);
@@ -215,11 +168,11 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
             }
             else
             {
-                char *args[1024];
+                char *args[COMMAND_PATH];
                 int i = 0;
                 args[i++] = command;
                 char *arg;
-                while ((arg = strtok(NULL, " \t")) != NULL)
+                while ((arg = strtok(NULL, " \t")) != NULL && strcmp(arg, ">>") != 0 && strcmp(arg, ">") != 0 && strcmp(arg, "<") != 0)
                 {
                     args[i++] = arg;
                 }
@@ -249,13 +202,13 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
                     {
                         if (*flag)
                         {
-                            strcat(time," ");
-                            strcat(time, " /");
-                            strcat(time, arr2);
+                            strcat(time_exceed_command, " ");
+                            strcat(time_exceed_command, " |");
+                            strcat(time_exceed_command, pipe2);
                         }
                         else
                         {
-                            strcpy(time, arr2);
+                            strcpy(time_exceed_command, pipe2);
                             *flag = 1;
                         }
                     }
@@ -263,40 +216,69 @@ void caller(char *arr, int bg, char *home, char *prev, char *log_path, char *tim
             }
             else
             {
+                add_process(&process_list, pid, pipe2);
                 printf("%d\n", pid);
             }
         }
     }
+    if (fd_out != -1)
+    {
+        dup2(original_stdout, STDOUT_FILENO);
+        close(fd_out);
+    }
+    if (fd_in != -1)
+    {
+        dup2(original_stdin, STDIN_FILENO);
+        close(fd_in);
+    }
+
+    close(original_stdout);
+    close(original_stdin);
+    FILE *src = fopen(pipe_file, "r");
+    if (src == NULL)
+    {
+        perror("Error opening source file");
+        return 1;
+    }
+    FILE *dest = fopen(pipe_file_read, "w");
+    if (dest == NULL)
+    {
+        perror("Error opening destination file");
+        fclose(src);
+        return 1;
+    }
+    char buffer[1024];
+    size_t bytes;
+    while ((bytes = fread(buffer, 1, sizeof(buffer), src)) > 0)
+    {
+        fwrite(buffer, 1, bytes, dest);
+    }
+    fclose(src);
+    fclose(dest);
+    src = fopen(pipe_file, "w");
+    if (src == NULL)
+    {
+        perror("Error opening source file to clear");
+        return 1;
+    }
+    fclose(src);
+    return 1;
 }
 
 int main()
 {
-
-    char arr[PATH_MAX];
-    getcwd(arr, sizeof(arr));
-    char previous_dir[PATH_MAX];
-    strncpy(previous_dir, arr, PATH_MAX);
-    char log_path[PATH_MAX];
-    snprintf(log_path, sizeof(log_path), "%s%s", arr, "/log.txt");
-    char bgends_path[PATH_MAX];
-    snprintf(bgends_path, sizeof(bgends_path), "%s%s", arr, "/bg_ends.txt");
-    char time_exceed_command[1024];// for printing the foreground command that takes more than 2 sec integral value
-    time_exceed_command[0] = '\0';
-    FILE *file2 = fopen(bgends_path, "w");
-    if (file2 == NULL)
-    {
-        perror("Failed to open file for writing");
-    }
-    fclose(file2);
+    begin();
     while (1)
     {
-        print_prompt(arr, time_exceed_command);
+        print_prompt(home_path, time_exceed_command);
         time_exceed_command[0] = '\0';
-        char input[1024];
+        char input[COMMAND_PATH];
         scanf("%[^\n]", input);
         int c;
-        while ((c = getchar()) != '\n' && c != EOF){}
-        input[strlen(input)]='\0';
+        while ((c = getchar()) != '\n' && c != EOF)
+        {
+        }
+        input[strlen(input)] = '\0';
         int len = strlen(input);
         int is_only_whitespace = 1;
         for (int i = 0; i < len; i++)
@@ -315,68 +297,7 @@ int main()
         {
             write_log(input, log_path);
         }
-        char delimiters[] = ";";
-        char *Input = strtok(input, delimiters);
-        char com[500][1024];
-        int count = 0;
-        int flag = 0;
-        char buffer[1024];
-        FILE *file = fopen(bgends_path, "r");
-        if (file == NULL)
-        {
-            perror("Failed to open file for reading");
-        }
-        while (fgets(buffer, sizeof(buffer), file) != NULL)
-        {
-            printf("%s", buffer);
-        }
-        fclose(file);
-        file = fopen(bgends_path, "w");
-        if (file == NULL)
-        {
-            perror("Failed to open file for writing");
-        }
-        fclose(file);
-        while (Input != NULL)
-        {
-            strcpy(com[count++], Input);
-            Input = strtok(NULL, delimiters);
-        }
-        for (int x = 0; x < count; x++)
-        {
-            if (strchr(com[x], '&'))
-            {
-                int bg_count = 0;
-                for (int y = 0; y < strlen(com[x]); y++)
-                {
-                    if (com[x][y] == '&')
-                    {
-                        bg_count++;
-                    }
-                }
-                char inp2[500][1024];
-                int count2 = 0;
-                char *inp = strtok(com[x], "&");
-                while (inp != NULL)
-                {
-                    strcpy(inp2[count2++], inp);
-                    inp = strtok(NULL, "&");
-                }
-                for (int y = 0; y < count2; y++)
-                {
-                    if (y == count2 - 1 && bg_count != count2)
-                    {
-                        caller(inp2[y], 0, arr, previous_dir, log_path, time_exceed_command, &flag, bgends_path);
-                    }
-                    else
-                        caller(inp2[y], 1, arr, previous_dir, log_path, time_exceed_command, &flag, bgends_path);
-                }
-            }
-            else
-            {
-                caller(com[x], 0, arr, previous_dir, log_path, time_exceed_command, &flag, bgends_path);
-            }
-        }
+        command_handler(input);
     }
     return 0;
 }
