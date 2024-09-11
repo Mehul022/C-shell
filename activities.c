@@ -17,26 +17,41 @@ Process *create_process(int pid, const char *command)
 
 void add_process(Process **head, int pid, const char *command)
 {
-    // adding new process in the front;
+    // printf("%d\n",pid);
     Process *new_process = create_process(pid, command);
-    new_process->next = *head;
-    *head = new_process;
+    if (*head == NULL || (*head)->pid > pid)
+    {
+        new_process->next = *head;
+        *head = new_process;
+        return;
+    }
+    Process *current = *head;
+    while (current->next != NULL && current->next->pid < pid)
+    {
+        current = current->next;
+    }
+    new_process->next = current->next;
+    current->next = new_process;
 }
 
-void remove_process(Process **head, int pid)
+char *remove_process(Process **head, int pid)
 {
     Process *current = *head;
     Process *previous = NULL;
+
     while (current != NULL && current->pid != pid)
     {
         previous = current;
         current = current->next;
     }
+
     if (current == NULL)
     {
         printf("Process with PID %d not found.\n", pid);
-        return;
+        return NULL;
     }
+
+    char *command = strdup(current->command); 
     if (previous == NULL)
     {
         *head = current->next;
@@ -45,7 +60,26 @@ void remove_process(Process **head, int pid)
     {
         previous->next = current->next;
     }
+
     free(current);
+    return command;
+}
+
+bool process_exist_list(int pid)
+{
+    // printf("%d\n",pid);
+    Process *temp=process_list;
+    while(temp!=NULL)
+    {
+        if(temp->pid==pid)
+        {
+            return true;
+        }
+        printf("%d\n",temp->pid);
+        fflush(stdout);
+        temp=temp->next;
+    }
+    return false;
 }
 
 int process_exists(int pid, char *state)
@@ -79,20 +113,31 @@ void update_and_print_processes()
     {
         if (process_exists(current->pid, state))
         {
-            if (strcmp(state, "R") == 0)
+            if (strcmp(state, "T") == 0)
+            {
+                printf("%d : %s - Stopped\n", current->pid, current->command);
+                previous = current;
+                current = current->next;
+            }
+            else if(strcmp(state,"Z")==0)
+            {
+                // printf("maa ki chut\n");
+                int pid=current->pid;
+                current = current->next;
+                remove_process(&process_list, pid);
+            }
+            else
             {
                 printf("%d : %s - Running\n", current->pid, current->command);
                 previous = current;
                 current = current->next;
             }
-            else
-            {
-                printf("%d : %s - Stopped\n", current->pid, current->command);
-            }
         }
         else
         {
-            remove_process(&process_list,current->pid);
+            int pid = current->pid;
+            current = current->next;
+            remove_process(&process_list,pid);
         }
     }
 }

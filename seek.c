@@ -371,97 +371,98 @@ void seek_handler(char *pipe, int flag_read, char *in_file)
     }
     else
     {
-        FILE *file;
-        char line[COMMAND_PATH];
-        file = fopen(in_file, "r");
-        if (file == NULL)
-        {
-            perror("Error opening file");
-            return;
-        }
-        else
-        {
-            while (fgets(line, sizeof(line), file))
-            {
-                if (line[strlen(line) - 1] == '\n')
-                {
-                    line[strlen(line) - 1] = '\0';
-                }
-                else
-                {
-                    line[strlen(line)] = '\0';
-                }
-                char *line2 = strtok(line, " \t");
-                while (line2 != NULL)
-                {
-                    if (line2[0] == '-' && strlen(line2) > 1)
-                    {
-                        if (line2[1] == 'd')
-                        {
-                            d = 1;
-                        }
-                        else if (line2[1] == 'f')
-                        {
-                            f = 1;
-                        }
-                        else if (line2[1] == 'e')
-                        {
-                            e = 1;
-                        }
-                        else
-                        {
-                            printf("Invalid Flag!!\n");
-                            return;
-                        }
+        // FILE *file;
+        // char line[COMMAND_PATH];
+        // file = fopen(in_file, "r");
+        // if (file == NULL)
+        // {
+        //     perror("Error opening file");
+        //     return;
+        // }
+        // else
+        // {
+        //     while (fgets(line, sizeof(line), file))
+        //     {
+        //         if (line[strlen(line) - 1] == '\n')
+        //         {
+        //             line[strlen(line) - 1] = '\0';
+        //         }
+        //         else
+        //         {
+        //             line[strlen(line)] = '\0';
+        //         }
+        //         char *line2 = strtok(line, " \t");
+        //         while (line2 != NULL)
+        //         {
+        //             if (line2[0] == '-' && strlen(line2) > 1)
+        //             {
+        //                 if (line2[1] == 'd')
+        //                 {
+        //                     d = 1;
+        //                 }
+        //                 else if (line2[1] == 'f')
+        //                 {
+        //                     f = 1;
+        //                 }
+        //                 else if (line2[1] == 'e')
+        //                 {
+        //                     e = 1;
+        //                 }
+        //                 else
+        //                 {
+        //                     printf("Invalid Flag!!\n");
+        //                     return;
+        //                 }
 
-                        if (d && f)
-                        {
-                            printf("Invalid Flags!!\n");
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        char search[COMMAND_PATH];
-                        strcpy(search, line2);
-                        line2 = strtok(NULL, " \t");
-                        if (line2 != NULL && strcmp(line2, ">>") != 0 && strcmp(line2, ">") != 0 && strcmp(line2, "<") != 0)
-                        {
-                            char directrix_path[COMMAND_PATH];
-                            strcpy(directrix_path, line2);
-                            char ret[COMMAND_PATH];
-                            if (seek(d, f, e, search, directrix_path, ret))
-                            {
-                                char previous_dir2[PATH];
-                                getcwd(previous_dir2, PATH);
-                                hop(ret);
-                                char previous_dir3[PATH];
-                                getcwd(previous_dir3, PATH);
-                                if (strcmp(previous_dir2, previous_dir3) != 0)
-                                {
-                                    strcpy(previous_dir, previous_dir2);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            char ret[COMMAND_PATH];
-                            if (seek(d, f, e, search, NULL, ret))
-                            {
-                                char previous_dir2[PATH];
-                                getcwd(previous_dir2, PATH);
-                                char previous_dir3[PATH];
-                                getcwd(previous_dir3, PATH);
-                                if (strcmp(previous_dir2, previous_dir3) != 0)
-                                {
-                                    strcpy(previous_dir, previous_dir2);
-                                }
-                            }
-                        }
-                    }
-                    line2 = strtok(NULL, " \t");
-                }
-            }
-        }
+        //                 if (d && f)
+        //                 {
+        //                     printf("Invalid Flags!!\n");
+        //                     return;
+        //                 }
+        //             }
+        //             else
+        //             {
+        //                 char search[COMMAND_PATH];
+        //                 strcpy(search, line2);
+        //                 line2 = strtok(NULL, " \t");
+        //                 if (line2 != NULL && strcmp(line2, ">>") != 0 && strcmp(line2, ">") != 0 && strcmp(line2, "<") != 0)
+        //                 {
+        //                     char directrix_path[COMMAND_PATH];
+        //                     strcpy(directrix_path, line2);
+        //                     char ret[COMMAND_PATH];
+        //                     if (seek(d, f, e, search, directrix_path, ret))
+        //                     {
+        //                         char previous_dir2[PATH];
+        //                         getcwd(previous_dir2, PATH);
+        //                         hop(ret);
+        //                         char previous_dir3[PATH];
+        //                         getcwd(previous_dir3, PATH);
+        //                         if (strcmp(previous_dir2, previous_dir3) != 0)
+        //                         {
+        //                             strcpy(previous_dir, previous_dir2);
+        //                         }
+        //                     }
+        //                 }
+        //                 else
+        //                 {
+        //                     char ret[COMMAND_PATH];
+        //                     if (seek(d, f, e, search, NULL, ret))
+        //                     {
+        //                         char previous_dir2[PATH];
+        //                         getcwd(previous_dir2, PATH);
+        //                         char previous_dir3[PATH];
+        //                         getcwd(previous_dir3, PATH);
+        //                         if (strcmp(previous_dir2, previous_dir3) != 0)
+        //                         {
+        //                             strcpy(previous_dir, previous_dir2);
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //             line2 = strtok(NULL, " \t");
+        //         }
+        //     }
+        // }
+        printf("Invalid use of redirection!!\n");
     }
 }

@@ -344,76 +344,77 @@ void reveal_handler(char *pipe, int flag_read, char *in_file)
     }
     else
     {
-        FILE *file;
-        char line[COMMAND_PATH];
-        file = fopen(in_file, "r");
-        if (file == NULL)
-        {
-            perror("Error opening file");
-            return;
-        }
-        else
-        {
-            while (fgets(line, sizeof(line), file))
-            {
-                if (line[strlen(line) - 1] == '\n')
-                {
-                    line[strlen(line) - 1] = '\0';
-                }
-                else
-                {
-                    line[strlen(line)] = '\0';
-                }
-                char *line2 = strtok(line, " \t");
-                while (line2 != NULL)
-                {
-                    if (line2[0] == '-' && strlen(line2) > 1)
-                    {
-                        for (int x = 0; x < strlen(line2); x++)
-                        {
-                            if (line2[x] != '-' && line2[x] != 'a' && line2[x] != 'l')
-                            {
-                                check = 0;
-                                printf("Invalid flag!!\n");
-                                break;
-                            }
-                        }
-                        if (check)
-                        {
-                            if (flags == NULL)
-                            {
-                                flags = strdup(line2);
-                            }
-                            else
-                            {
-                                char *temp_flags = (char *)malloc(strlen(flags) + strlen(line2) + 1);
-                                strcpy(temp_flags, flags);
-                                strcat(temp_flags, line2);
-                                free(flags);
-                                flags = temp_flags;
-                            }
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        path = line2;
-                    }
-                    line2 = strtok(NULL, " \t");
-                }
-                if (check)
-                {
-                    handle_reveal(path, flags);
-                }
-                if (flags != NULL)
-                {
-                    free(flags);
-                }
+        // FILE *file;
+        // char line[COMMAND_PATH];
+        // file = fopen(in_file, "r");
+        // if (file == NULL)
+        // {
+        //     perror("Error opening file");
+        //     return;
+        // }
+        // else
+        // {
+        //     while (fgets(line, sizeof(line), file))
+        //     {
+        //         if (line[strlen(line) - 1] == '\n')
+        //         {
+        //             line[strlen(line) - 1] = '\0';
+        //         }
+        //         else
+        //         {
+        //             line[strlen(line)] = '\0';
+        //         }
+        //         char *line2 = strtok(line, " \t");
+        //         while (line2 != NULL)
+        //         {
+        //             if (line2[0] == '-' && strlen(line2) > 1)
+        //             {
+        //                 for (int x = 0; x < strlen(line2); x++)
+        //                 {
+        //                     if (line2[x] != '-' && line2[x] != 'a' && line2[x] != 'l')
+        //                     {
+        //                         check = 0;
+        //                         printf("Invalid flag!!\n");
+        //                         break;
+        //                     }
+        //                 }
+        //                 if (check)
+        //                 {
+        //                     if (flags == NULL)
+        //                     {
+        //                         flags = strdup(line2);
+        //                     }
+        //                     else
+        //                     {
+        //                         char *temp_flags = (char *)malloc(strlen(flags) + strlen(line2) + 1);
+        //                         strcpy(temp_flags, flags);
+        //                         strcat(temp_flags, line2);
+        //                         free(flags);
+        //                         flags = temp_flags;
+        //                     }
+        //                 }
+        //                 else
+        //                 {
+        //                     break;
+        //                 }
+        //             }
+        //             else
+        //             {
+        //                 path = line2;
+        //             }
+        //             line2 = strtok(NULL, " \t");
+        //         }
+        //         if (check)
+        //         {
+        //             handle_reveal(path, flags);
+        //         }
+        //         if (flags != NULL)
+        //         {
+        //             free(flags);
+        //         }
                 
-            }
-        }
+        //     }
+        // }
+        printf("Invalid use of redirection!!\n");
     }
 }

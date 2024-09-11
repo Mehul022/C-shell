@@ -1,15 +1,15 @@
-echo "jflkml" | wc 
-| wc
-echo "ynghwnj" | | wc
-echo "gghjmk" | wc | cat > a.txt
-echo "ugnhu" | wc | cat > a.txt |
-echo "Something" > a.txt | wc
-echo "So" | wc < a.txt
+proclore 65313
+sleep 10 
 activities
-vim &
-[I[3;1R[>0;276;0c]10;rgb:cccc/cccc/cccc\]11;rgb:1818/1818/1818OAOAOAOAOAOAOAOAOA:vijnj:::q[O[I:![O:OBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOBOAOAOAOAOAOAOAOAOAOAOAOAOAOAOAOAOA:s:q![O:q!!!!
-[I[3
-sleep 100 &
+proclore 65708
+proclore
+sleep 10 &
+sleep 5
 activities
-sleep 100 &
-activities
+proclore 66111
+gedit &
+ping 67198 19
+ping 67198 9
+iMan sleep
+hop
+hop ..

@@ -26,8 +26,7 @@ void read_commands(char commands[15][COMMAND_PATH], int *count, char* log_path)
     }
     *count = 0;
     while (fgets(commands[*count], COMMAND_PATH, file) != NULL)
-    {
-        // Remove the newline character
+    {                                                       
         commands[*count][strcspn(commands[*count], "\n")] = '\0';
         (*count)++;
         if (*count >= 15)

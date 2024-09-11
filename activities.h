@@ -9,7 +9,8 @@ typedef struct Process
 } Process;
 Process *create_process(int pid, const char *command);
 void add_process(Process **head, int pid, const char *command);
-void remove_process(Process **head, int pid);
+char* remove_process(Process **head, int pid);
 int process_exists(int pid, char *state);
 void update_and_print_processes();
+bool process_exist_list(int pid);
 #endif

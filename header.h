@@ -21,6 +21,11 @@
 #include <pwd.h>
 #include <grp.h>
 #include <ctype.h>
+#include <termios.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include <fcntl.h>
 #include "proclore.h"
 #include "seek.h"
@@ -31,8 +36,13 @@
 #include"main.h"
 #include"functions.h"
 #include"activities.h"
+#include"ping.h"
+#include"bg_fg.h"
+#include"neonate.h"
+#include"iman.h"
 #define PATH 1025
-#define COMMAND_PATH 4097
+#define COMMAND_PATH 4096
+#define PORT 80
 #define BLUE "\033[34m"
 #define GREEN "\033[32m"
 #define WHITE "\033[37m"
@@ -43,7 +53,7 @@ extern char log_path[PATH_MAX];
 extern char bgends_path[PATH_MAX];
 extern char time_exceed_command[COMMAND_PATH]; // for printing the foreground command that takes more than 2 sec integral value
 extern char myshrc_path[PATH];
-extern char pipe_file[PATH];
-extern char pipe_file_read[PATH];
+extern char foregroung_command[COMMAND_PATH];
 extern Process *process_list;
+extern int foreground_pid;
 #endif
