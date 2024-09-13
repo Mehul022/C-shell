@@ -40,6 +40,7 @@
 #include"bg_fg.h"
 #include"neonate.h"
 #include"iman.h"
+#include"myshrc.h"
 #define PATH 1025
 #define COMMAND_PATH 4096
 #define PORT 80

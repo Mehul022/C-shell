@@ -11,7 +11,7 @@ int caller(char *input_command, int bg, int *flag, int pipe_flag_write, int pipe
     char input_command3[COMMAND_PATH];
     int has_pipe = 0;
     strcpy(input_command3, input_command);
-    if (pipe_flag_write || pipe_flag_read)
+    if (pipe_flag_write)
     {
         if (pipe(fd_pipe) == -1)
         {
@@ -48,6 +48,7 @@ int caller(char *input_command, int bg, int *flag, int pipe_flag_write, int pipe
     }
     else if (pipe_flag_read)
     {
+        // printf("read\n");
         fd_in = fd_read;
         dup2(fd_read, STDIN_FILENO);
         close(fd_read);
@@ -142,6 +143,14 @@ int caller(char *input_command, int bg, int *flag, int pipe_flag_write, int pipe
     {
         fetch_and_display_man_page(strtok(NULL, " \t"));
     }
+    else if(strcmp(command,"nano")==0)
+    {
+        nano_handler(input_command2,bg,flag);
+    }
+    else if (strcmp(command, "vim") == 0)
+    {
+        vim_handler(input_command2,bg,flag);
+    }
     else
     {
         int pid = fork();
@@ -151,6 +160,7 @@ int caller(char *input_command, int bg, int *flag, int pipe_flag_write, int pipe
         }
         else if (pid == 0)
         {
+            setpgid(0, 0);
             char *args[COMMAND_PATH];
             int i = 0;
             args[i++] = command;
@@ -168,6 +178,7 @@ int caller(char *input_command, int bg, int *flag, int pipe_flag_write, int pipe
         }
         else
         {
+            setpgid(pid, pid);
             if (!bg)
             {
                 struct timespec start, end;
@@ -197,6 +208,7 @@ int caller(char *input_command, int bg, int *flag, int pipe_flag_write, int pipe
                         break;
                     }
                 }
+                setpgid(pid, pid);
                 clock_gettime(CLOCK_MONOTONIC, &end);
                 foreground_pid = -1;
                 if (!status)
@@ -222,10 +234,6 @@ int caller(char *input_command, int bg, int *flag, int pipe_flag_write, int pipe
             }
             else
             {
-                if (setpgid(pid, pid) < 0)
-                {
-                    perror("Failed to set process group ID");
-                }
                 add_process(&process_list, pid, input_command2);
                 printf("%d\n", pid);
             }
@@ -244,7 +252,9 @@ int caller(char *input_command, int bg, int *flag, int pipe_flag_write, int pipe
 
     close(original_stdout);
     close(original_stdin);
+    if(pipe_flag_write)
     return fd_pipe[0];
+    return -1;
 }
 
 int main()
@@ -258,7 +268,7 @@ int main()
     {
         print_prompt(home_path, time_exceed_command);
         time_exceed_command[0] = '\0';
-        char input[COMMAND_PATH];
+        char input[COMMAND_PATH]={0};
         if (scanf("%[^\n]", input) == EOF)
         {
             ctrl_d_handler();
@@ -290,7 +300,19 @@ int main()
         {
             write_log(input, log_path);
         }
-        command_handler(input);
+        
+        if(check_ampersand_pipe(input))
+        {
+            char* input3=replace_word_in_line(input);
+            if(input3!=NULL)
+            command_handler(input3);
+            free(input3);
+        }
+        else
+        {
+            printf("Invalid use of pipe\n");
+            continue;
+        }
     }
     return 0;
 }

@@ -1,0 +1,1 @@
+ wc  exited normally (21202) 

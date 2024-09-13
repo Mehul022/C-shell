@@ -39,6 +39,29 @@ char *decode_path(char *command)
     }
 }
 
+int check_ampersand_pipe(char *str)
+{
+    const char *p = str;
+    int found_amp = 0;
+    while (*p)
+    {
+        if (*p == '&')
+        {
+            found_amp = 1;
+        }
+        else if (found_amp && *p == '|')
+        {
+            return 0;
+        }
+        else if (found_amp && !isspace(*p))
+        {
+            found_amp = 0;
+        }
+        p++;
+    }
+    return 1;
+}
+
 void sigint_handler(int sig)
 {
     if (foreground_pid != -1)
@@ -63,6 +86,7 @@ void ctrl_d_handler()
         kill(pid, SIGKILL);
     }
     kill(getpid(), SIGKILL);
+    exit(0);
 }
 
 void sigtstp_handler(int sig)
@@ -70,7 +94,6 @@ void sigtstp_handler(int sig)
     if (foreground_pid > 0)
     {
         add_process(&process_list, foreground_pid, foregroung_command);
-        setpgid(foreground_pid,0);
         if (kill(foreground_pid, SIGTSTP) == -1)
         {
             perror("Error sending SIGTSTP to the process");
@@ -264,11 +287,6 @@ void begin()
 
 void sigchld_handler(int signo)
 {
-    (void)signo;
-    if (signal == SIGKILL)
-    {
-        return;
-    }
     int status;
     pid_t pid;
     FILE *file = fopen(bgends_path, "a");
@@ -306,4 +324,186 @@ void sigchld_handler(int signo)
         }
     }
     fclose(file);
+}
+
+void nano_handler(char *input,int bg,int *flag)
+{
+    char *command=strtok(input," \t");
+    int pid = fork();
+    if (pid < 0)
+    {
+        perror("fork failed");
+    }
+    else if (pid == 0)
+    {
+        char *args[COMMAND_PATH];
+        int i = 0;
+        args[i++] = command;
+        char *arg;
+        while ((arg = strtok(NULL, " \t")) != NULL && strcmp(arg, ">>") != 0 && strcmp(arg, ">") != 0 && strcmp(arg, "<") != 0)
+        {
+            args[i++] = arg;
+        }
+        args[i] = NULL;
+        if (execvp(command, args) < 0)
+        {
+            perror("Execution failed");
+        }
+        exit(1);
+    }
+    else
+    {
+        if (!bg)
+        {
+            struct timespec start, end;
+            clock_gettime(CLOCK_MONOTONIC, &start);
+            strcpy(foregroung_command, input);
+            int status;
+            foreground_pid = pid;
+            while (1)
+            {
+                pid_t result = waitpid(pid, &status, WNOHANG | WUNTRACED);
+
+                if (result == -1)
+                {
+                    break;
+                }
+
+                if (result == 0)
+                {
+                    sleep(0.1);
+                }
+                else if (WIFSTOPPED(status))
+                {
+                    break;
+                }
+                else if (WIFEXITED(status) || WIFSIGNALED(status))
+                {
+                    break;
+                }
+            }
+            setpgid(pid, pid);
+            clock_gettime(CLOCK_MONOTONIC, &end);
+            foreground_pid = -1;
+            if (!status)
+            {
+                double elapsed = end.tv_sec - start.tv_sec;
+                elapsed += (end.tv_nsec - start.tv_nsec) / 1000000000.0;
+                int t = elapsed;
+                if (t > 2)
+                {
+                    if (*flag)
+                    {
+                        strcat(time_exceed_command, " ");
+                        strcat(time_exceed_command, "|");
+                        strcat(time_exceed_command, input);
+                    }
+                    else
+                    {
+                        strcpy(time_exceed_command, input);
+                        *flag = 1;
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (setpgid(pid, pid) < 0)
+            {
+                perror("Failed to set process group ID");
+            }
+            add_process(&process_list, pid, input);
+            printf("%d\n", pid);
+        }
+    }
+}
+void vim_handler(char *input, int bg, int *flag)
+{
+    char *command = strtok(input, " \t");
+    int pid = fork();
+    if (pid < 0)
+    {
+        perror("fork failed");
+    }
+    else if (pid == 0)
+    {
+        char *args[COMMAND_PATH];
+        int i = 0;
+        args[i++] = command;
+        char *arg;
+        while ((arg = strtok(NULL, " \t")) != NULL && strcmp(arg, ">>") != 0 && strcmp(arg, ">") != 0 && strcmp(arg, "<") != 0)
+        {
+            args[i++] = arg;
+        }
+        args[i] = NULL;
+        if (execvp(command, args) < 0)
+        {
+            perror("Execution failed");
+        }
+        exit(1);
+    }
+    else
+    {
+        if (!bg)
+        {
+            struct timespec start, end;
+            clock_gettime(CLOCK_MONOTONIC, &start);
+            strcpy(foregroung_command, input);
+            int status;
+            foreground_pid = pid;
+            while (1)
+            {
+                pid_t result = waitpid(pid, &status, WNOHANG | WUNTRACED);
+
+                if (result == -1)
+                {
+                    break;
+                }
+
+                if (result == 0)
+                {
+                    sleep(0.1);
+                }
+                else if (WIFSTOPPED(status))
+                {
+                    break;
+                }
+                else if (WIFEXITED(status) || WIFSIGNALED(status))
+                {
+                    break;
+                }
+            }
+            clock_gettime(CLOCK_MONOTONIC, &end);
+            foreground_pid = -1;
+            if (!status)
+            {
+                double elapsed = end.tv_sec - start.tv_sec;
+                elapsed += (end.tv_nsec - start.tv_nsec) / 1000000000.0;
+                int t = elapsed;
+                if (t > 2)
+                {
+                    if (*flag)
+                    {
+                        strcat(time_exceed_command, " ");
+                        strcat(time_exceed_command, "|");
+                        strcat(time_exceed_command, input);
+                    }
+                    else
+                    {
+                        strcpy(time_exceed_command, input);
+                        *flag = 1;
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (setpgid(pid, pid) < 0)
+            {
+                perror("Failed to set process group ID");
+            }
+            add_process(&process_list, pid, input);
+            printf("%d\n", pid);
+        }
+    }
 }

@@ -1,22 +1,23 @@
 #include "header.h"
 struct termios orig_termios;
+int child_pid;
 void disableRawMode()
 {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
 }
-void enableRawMode()
+
+void last_pid(int time)
 {
-    // in normal mode it wait for newline from user to read the input by removing the canonical mode from original now we can read the input without having newline from the user..
     tcgetattr(STDIN_FILENO, &orig_termios);
     atexit(disableRawMode);
     struct termios raw = orig_termios;
     raw.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
-}
-
-void last_pid(int time)
-{
-    enableRawMode();
+    sigset_t new_set, old_set;
+    sigemptyset(&new_set);
+    sigaddset(&new_set, SIGINT);
+    sigaddset(&new_set, SIGTSTP);
+    sigprocmask(SIG_BLOCK, &new_set, &old_set) ;
     int pid = fork();
     if (pid == 0)
     {
@@ -42,13 +43,35 @@ void last_pid(int time)
         }
     }
     else if (pid > 0)
-    {
+    {                
+        child_pid = pid;
+        fd_set readfds;
         char c;
-        while (read(STDIN_FILENO, &c, 1) == 1 && c != 'x')
+        while (1)
         {
-            continue;
+            FD_ZERO(&readfds);
+            FD_SET(STDIN_FILENO, &readfds); 
+            struct timeval timeout;
+            timeout.tv_sec = time; 
+            timeout.tv_usec = 0;
+            int result = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
+            if (result == -1)
+            {
+                perror("select() error");
+                break;
+            }
+            else if (result > 0)
+            {
+                if (FD_ISSET(STDIN_FILENO, &readfds))
+                {
+                    if (read(STDIN_FILENO, &c, 1) == 1 && c == 'x')
+                    {
+                        kill(pid, SIGKILL);
+                        disableRawMode();
+                        break;
+                    }
+                }
+            }
         }
-        kill(pid, SIGKILL);
     }
-    disableRawMode();
 }

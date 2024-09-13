@@ -14,7 +14,8 @@ bool proclore_pro(char *command)
     if (kill(pid, 0) == 0)
     {
         int group_id = getpgid(pid);
-        pid_t fg_pgid = tcgetpgrp(STDIN_FILENO);
+        pid_t fg_pgid = getpid();
+        // printf("%d %d\n",group_id,fg_pgid);
         char process_path[PATH];
         char state;
         snprintf(process_path, sizeof(process_path), "/proc/%d/status", pid);

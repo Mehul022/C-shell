@@ -8,4 +8,7 @@ void sigint_handler(int sig);
 void ctrl_d_handler();
 void sigtstp_handler(int sig);
 void sigchld_handler(int signo);
+void vim_handler(char *input, int bg, int *flag);
+void nano_handler(char *input, int bg, int *flag);
+int check_ampersand_pipe(char *str);
 #endif

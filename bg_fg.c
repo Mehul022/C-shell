@@ -15,6 +15,7 @@ void fg(int pid,int* flag)
         strcpy(foregroung_command, input_command2);
         int status;
         foreground_pid = pid;
+        setpgid(pid,0);
         while (1)
         {
             pid_t result = waitpid(pid, &status, WNOHANG | WUNTRACED);

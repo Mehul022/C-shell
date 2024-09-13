@@ -1,2 +1,2 @@
 all:
-	gcc *.c
+	gcc *.c 
